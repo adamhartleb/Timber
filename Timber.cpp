@@ -7,14 +7,6 @@ int main()
 {
 	/*VideoMode vm(1920, 1080);*/
 	VideoMode vm = VideoMode(1920, 1080);
-	Font font;
-	font.loadFromFile("./fonts/KOMIKAB_.ttf");
-
-	Text myText;
-	myText.setString("Hello, World!");
-	myText.setCharacterSize(75);
-	myText.setFillColor(Color::White);
-	myText.setFont(font);
 
 	RenderWindow window(vm, "Timber!!!", Style::Fullscreen);
 
@@ -50,6 +42,28 @@ int main()
 	float cloud1Speed = 0, cloud2Speed = 0, cloud3Speed = 0;
 
 	Clock clock;
+
+	Font font;
+	font.loadFromFile("./fonts/KOMIKAB_.ttf");
+
+	int score = 0;
+	Text messageText, scoreText;
+	messageText.setFont(font);
+	scoreText.setFont(font);
+	messageText.setString("Press Enter to start!");
+	scoreText.setString("Score = 0");
+	messageText.setCharacterSize(75);
+	scoreText.setCharacterSize(100);
+	messageText.setFillColor(Color::White);
+	scoreText.setFillColor(Color::White);
+
+	FloatRect textRect = messageText.getLocalBounds();
+	messageText.setOrigin(
+		textRect.left + textRect.width / 2.f,
+		textRect.top + textRect.height / 2.f
+	);
+	messageText.setPosition(1920 / 2.f, 1080 / 2.f);
+	scoreText.setPosition(20, 20);
 
 	while (window.isOpen())
 	{
@@ -157,13 +171,13 @@ int main()
 					isCloud3Active = false;
 				}
 			}
+
+			std::stringstream ss;
+			ss << "Score = " << score;
+			scoreText.setString(ss.str());
 		}
 
-		myText.setPosition(250, 250);
-
 		window.draw(spriteBackground);
-
-		window.draw(myText);
 
 		window.draw(spriteCloud1);
 		window.draw(spriteCloud2);
@@ -172,6 +186,12 @@ int main()
 		window.draw(spriteTree);
 
 		window.draw(spriteBee);
+
+		window.draw(scoreText);
+		if (paused)
+		{
+			window.draw(messageText);
+		}
 
 		window.display();
 		
