@@ -43,6 +43,16 @@ int main()
 
 	Clock clock;
 
+	RectangleShape timeBar;
+	float timeBarStartWidth = 400.f;
+	float timeBarHeight = 80.f;
+	timeBar.setSize(Vector2f(timeBarStartWidth, timeBarHeight));
+	timeBar.setFillColor(Color::Red);
+	timeBar.setPosition((1920 / 2) - (timeBarStartWidth / 2), 980);
+	Time gameTimeTotal;
+	float timeRemaining = 6.0f;
+	float timeBarWidthPerSecond = timeBarStartWidth / timeRemaining;
+
 	Font font;
 	font.loadFromFile("./fonts/KOMIKAB_.ttf");
 
@@ -75,6 +85,8 @@ int main()
 		if (Keyboard::isKeyPressed(Keyboard::Return))
 		{
 			paused = false;
+			score = 0;
+			timeRemaining = 6.f;
 		}
 
 		if (!paused)
@@ -82,6 +94,24 @@ int main()
 			window.clear();
 
 			Time dt = clock.restart();
+
+			timeRemaining -= dt.asSeconds();
+			timeBar.setSize(Vector2f(
+				timeBarWidthPerSecond * timeRemaining,
+				timeBarHeight
+			));
+
+			if (timeRemaining <= 0.f)
+			{
+				paused = true;
+				messageText.setString("Out of time!!");
+				FloatRect textRect = messageText.getLocalBounds();
+				messageText.setOrigin(
+					textRect.left + textRect.width / 2.f,
+					textRect.top + textRect.height / 2.f
+				);
+				messageText.setPosition(1920 / 2.f, 1080 / 2.f);
+			}
 
 			if (!isBeeActive)
 			{
@@ -186,6 +216,8 @@ int main()
 		window.draw(spriteTree);
 
 		window.draw(spriteBee);
+
+		window.draw(timeBar);
 
 		window.draw(scoreText);
 		if (paused)
