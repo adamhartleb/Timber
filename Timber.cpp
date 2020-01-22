@@ -39,12 +39,41 @@ int main()
 	spriteCloud2.setPosition(0, 250);
 	spriteCloud3.setPosition(0, 500);
 
+	Texture texturePlayer;
+	texturePlayer.loadFromFile("./graphics/player.png");
+	Sprite spritePlayer;
+	spritePlayer.setTexture(texturePlayer);
+	spritePlayer.setPosition(580, 720);
+	side playerSide = side::LEFT;
+
+	Texture textureTombstone;
+	textureTombstone.loadFromFile("./graphics/rip.png");
+	Sprite spriteTombstone;
+	spriteTombstone.setTexture(textureTombstone);
+	spriteTombstone.setPosition(600, 860);
+
+	Texture textureAxe;
+	textureAxe.loadFromFile("./graphics/axe.png");
+	Sprite spriteAxe;
+	spriteAxe.setTexture(textureAxe);
+	spriteAxe.setPosition(700, 830);
+	const float AXE_POSITION_LEFT = 700;
+	const float AXE_POSITION_RIGHT = 1075;
+
+	Texture textureLog;
+	textureLog.loadFromFile("./graphics/log.png");
+	Sprite spriteLog;
+	spriteLog.setTexture(textureLog);
+	spriteLog.setPosition(810, 720);
+
+	bool logActive = false;
+	float logSpeedX = 1000;
+	float logSpeedY = -1500;
 	bool paused = true;
 	bool isBeeActive = false;
+	bool isInputAccepted = false;
 	bool isCloud1Active = false, isCloud2Active = false, isCloud3Active = false;
 	float beeSpeed = 0.0f;
-	
-
 	float cloud1Speed = 0, cloud2Speed = 0, cloud3Speed = 0;
 
 	Clock clock;
@@ -98,6 +127,16 @@ int main()
 
 	while (window.isOpen())
 	{
+		Event event;
+		while (window.pollEvent(event))
+		{
+			if (event.type == Event::KeyReleased && !paused)
+			{
+				isInputAccepted = true;
+				spriteAxe.setPosition(2000, spriteAxe.getPosition().y);
+			}
+		}
+
 		if (Keyboard::isKeyPressed(Keyboard::Escape))
 		{
 			window.close();
@@ -108,6 +147,48 @@ int main()
 			paused = false;
 			score = 0;
 			timeRemaining = 6.f;
+			for (int i = 1; i < NUM_BRANCHES; i++)
+			{
+				branchPositions[i] = side::NONE;
+			}
+			spriteTombstone.setPosition(675, 2000);
+			spritePlayer.setPosition(580, 720);
+			isInputAccepted = true;
+		}
+
+		if (isInputAccepted)
+		{
+			if (Keyboard::isKeyPressed(Keyboard::Right))
+			{
+				playerSide = side::RIGHT;
+				score++;
+				timeRemaining += (2 / score) + .15;
+				spriteAxe.setPosition(AXE_POSITION_RIGHT, spriteAxe.getPosition().y);
+				spritePlayer.setPosition(1200, 720);
+				spritePlayer.setScale(1, 1);
+				updateBranches(score);
+
+				spriteLog.setPosition(810, 720);
+				logSpeedX = -5000;
+				logActive = true;
+				isInputAccepted = false;
+			}
+
+			if (Keyboard::isKeyPressed(Keyboard::Left))
+			{
+				playerSide = side::LEFT;
+				score++;
+				timeRemaining += (2 / score) + .15;
+				spriteAxe.setPosition(AXE_POSITION_LEFT, spriteAxe.getPosition().y);
+				spritePlayer.setPosition(730, 720);
+				spritePlayer.setScale(-1, 1);
+				updateBranches(score);
+
+				spriteLog.setPosition(810, 720);
+				logSpeedX = 5000;
+				logActive = true;
+				isInputAccepted = false;
+			}
 		}
 
 		if (!paused)
@@ -223,6 +304,22 @@ int main()
 				}
 			}
 
+			if (logActive)
+			{
+				spriteLog.setPosition(
+					spriteLog.getPosition().x + (dt.asSeconds() * logSpeedX),
+					spriteLog.getPosition().y + (dt.asSeconds() * logSpeedY)
+				);
+
+				if (spriteLog.getPosition().x < -100 ||
+					spriteLog.getPosition().x > 2000)
+				{
+					// Set it up ready to be a whole new log next frame
+					logActive = false;
+					spriteLog.setPosition(810, 720);
+				}
+			}
+
 			std::stringstream ss;
 			ss << "Score = " << score;
 			scoreText.setString(ss.str());
@@ -255,8 +352,11 @@ int main()
 		};
 
 		window.draw(spriteTree);
-
 		window.draw(spriteBee);
+		window.draw(spriteAxe);
+		window.draw(spriteLog);
+		window.draw(spriteTombstone);
+		window.draw(spritePlayer);
 
 		window.draw(timeBar);
 
